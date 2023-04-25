@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import Data from "../Data.json";
-import { IData, IRelative } from "../models/Data";
+import { IData } from "../models/Data";
 
 export interface IDataState {
   value: IData[];

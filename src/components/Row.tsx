@@ -15,6 +15,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { useSelector } from "react-redux";
 import { RootState } from "../store";
 import { IData } from "../models/Data";
+import CollapsibleTable from "./CollapsibleTable";
 
 export interface RowProps {
   row: IData;
@@ -23,8 +24,19 @@ export interface RowProps {
 const Row: React.FunctionComponent<RowProps> = ({ row }) => {
   //const { row } = props;
   const [openRelatives, setOpenRelatives] = React.useState(false);
-  const [openPhones, setOpenPhones] = React.useState(false);
+  // const [openPhones, setOpenPhones] = React.useState(false);
+  // const [expandedRelativeId, setExpandedRelativeId] = React.useState(null);
   // console.log(row.has_relatives);
+
+  const [expandedRelativeId, setExpandedRelativeId] = React.useState<
+    string | null
+  >(null);
+
+  const handleExpandRow = (relativeId: string) => {
+    setExpandedRelativeId((prevState: string | null) =>
+      prevState === relativeId ? null : relativeId
+    );
+  };
 
   return (
     <React.Fragment>
@@ -36,7 +48,11 @@ const Row: React.FunctionComponent<RowProps> = ({ row }) => {
               size="small"
               onClick={() => setOpenRelatives(!openRelatives)}
             >
-              {openRelatives ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
+              {openRelatives ? (
+                <KeyboardArrowDownIcon />
+              ) : (
+                <KeyboardArrowRightIcon />
+              )}
             </IconButton>
           </TableCell>
         ) : (
@@ -57,8 +73,13 @@ const Row: React.FunctionComponent<RowProps> = ({ row }) => {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={openRelatives} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
-              <Typography variant="h6" gutterBottom component="div">
-                History
+              <Typography
+                variant="h6"
+                gutterBottom
+                component="div"
+                sx={{ textTransform: "uppercase" }}
+              >
+                {Object.keys(row).slice(-1)[0]}
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
@@ -73,37 +94,100 @@ const Row: React.FunctionComponent<RowProps> = ({ row }) => {
                 </TableHead>
                 <TableBody>
                   {row?.has_relatives?.map((historyRow, index) => (
-                    <TableRow key={index}>
-                      {historyRow?.has_phone?.length !== 0 ? (
-                        <TableCell>
-                          <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            onClick={() => setOpenPhones(!openPhones)}
-                          >
-                            {openPhones ? (
-                              <KeyboardArrowDownIcon />
-                            ) : (
-                              <KeyboardArrowRightIcon />
-                            )}
-                          </IconButton>
+                    <React.Fragment key={index}>
+                      <TableRow>
+                        {historyRow?.has_phone?.length !== 0 ? (
+                          <TableCell>
+                            <IconButton
+                              aria-label="expand row"
+                              size="small"
+                              onClick={() =>
+                                handleExpandRow(historyRow["Relative ID"])
+                              }
+                            >
+                              {expandedRelativeId ===
+                              historyRow["Relative ID"] ? (
+                                <KeyboardArrowDownIcon />
+                              ) : (
+                                <KeyboardArrowRightIcon />
+                              )}
+                            </IconButton>
+                          </TableCell>
+                        ) : (
+                          <TableCell></TableCell>
+                        )}
+                        <TableCell align="left">
+                          {historyRow["Relative ID"]}
                         </TableCell>
-                      ) : (
-                        <TableCell></TableCell>
-                      )}
-                      <TableCell align="left">
-                        {historyRow["Relative ID"]}
-                      </TableCell>
-                      <TableCell align="left">
-                        {historyRow["Patient ID"]}
-                      </TableCell>
-                      <TableCell align="left">
-                        {historyRow["Is alive?"]}
-                      </TableCell>
-                      <TableCell align="left">
-                        {historyRow["Frequency of visits"]}
-                      </TableCell>
-                    </TableRow>
+                        <TableCell align="left">
+                          {historyRow["Patient ID"]}
+                        </TableCell>
+                        <TableCell align="left">
+                          {historyRow["Is alive?"]}
+                        </TableCell>
+                        <TableCell align="left">
+                          {historyRow["Frequency of visits"]}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell
+                          style={{ paddingBottom: 0, paddingTop: 0 }}
+                          colSpan={6}
+                        >
+                          <Collapse
+                            in={
+                              expandedRelativeId === historyRow["Relative ID"]
+                            }
+                            timeout="auto"
+                            unmountOnExit
+                          >
+                            <Box sx={{ margin: 1 }}>
+                              <Typography
+                                variant="h6"
+                                gutterBottom
+                                component="div"
+                                sx={{ textTransform: "uppercase" }}
+                              >
+                                {Object.keys(historyRow).slice(-1)[0]}
+                              </Typography>
+                              <Table size="small" aria-label="purchases">
+                                <TableHead>
+                                  <TableRow>
+                                    {historyRow.has_phone[0] &&
+                                      Object.keys(historyRow.has_phone[0]).map(
+                                        (phone, index) => {
+                                          return (
+                                            <TableCell key={index}>
+                                              {phone}
+                                            </TableCell>
+                                          );
+                                        }
+                                      )}
+                                  </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                  {historyRow?.has_phone?.map(
+                                    (phone, index) => (
+                                      <TableRow key={index}>
+                                        <TableCell align="left">
+                                          {phone["Phone ID"]}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                          {phone["ID of the relative"]}
+                                        </TableCell>
+                                        <TableCell align="left">
+                                          {phone["Phone"]}
+                                        </TableCell>
+                                      </TableRow>
+                                    )
+                                  )}
+                                </TableBody>
+                              </Table>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
