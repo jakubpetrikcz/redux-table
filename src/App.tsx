@@ -1,5 +1,5 @@
 import "./App.css";
-import CollapsibleTable from "./components/CollapsibleTable";
+import CollapsibleTable from "./components/CollapsibleTable/CollapsibleTable";
 
 function App() {
   return (
