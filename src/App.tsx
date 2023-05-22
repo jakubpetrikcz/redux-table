@@ -1,10 +1,10 @@
 import "./App.css";
-import CollapsibleTable from "./components/CollapsibleTable/CollapsibleTable";
+import ContainerTable from "./components/Container/Container";
 
 function App() {
   return (
     <div className="App">
-      <CollapsibleTable />
+      <ContainerTable />
     </div>
   );
 }

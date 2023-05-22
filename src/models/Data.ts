@@ -1,27 +1,40 @@
-export interface IData {
-  "Identification number": string;
-  "Name": string;
-  "Gender": string;
-  "Risk": string;
-  "Hair length": string;
-  "IQ": string;
-  "Admission date": string;
-  "Last breakdown": string;
-  "Yearly fee": string;
-  "Knows the Joker?": string;
-  "has_relatives": IRelative[];
+export interface PersonData {
+  ID: string;
+  Name: string;
+  Gender: string;
+  Ability: string;
+  "Minimal distance": string;
+  Weight: string;
+  Born: string;
+  "In space since": string;
+  "Beer consumption (l/y)": string;
+  "Knows the answer?": string;
 }
 
-export interface IRelative {
-  "Relative ID": string;
-  "Patient ID": string;
+export interface PersonRecord {
+  data: PersonData;
+  children: Record<string, { records: NemesisRecord[] }>;
+}
+
+export interface NemesisData {
+  ID: string;
+  "Character ID": string;
   "Is alive?": string;
-  "Frequency of visits": string;
-  "has_phone": IPhone[];
+  Years: string;
 }
 
-export interface IPhone {
-  "Phone ID": string;
-  "ID of the relative": string;
-  "Phone": string;
+export interface NemesisRecord {
+  data: NemesisData;
+  children: Record<string, { records: SecreteRecord[] }>;
+}
+
+export interface SecreteData {
+  ID: string;
+  "Nemesis ID": string;
+  "Secrete Code": string;
+}
+
+export interface SecreteRecord {
+  data: SecreteData;
+  children: Record<string, { records: any[] }>;
 }

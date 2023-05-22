@@ -1,68 +1,75 @@
-import { createSlice } from "@reduxjs/toolkit";
-import Data from "../Data.json";
-import { IData } from "../models/Data";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+import { NemesisRecord, PersonRecord, SecreteRecord } from "../models/data";
 
-export interface IDataState {
-  value: IData[];
+interface State {
+  data: PersonRecord[];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
 }
 
-const initialState: IDataState = {
-  value: Data.map(({ data, kids }) => ({
-    ...data,
-    has_relatives:
-      kids?.has_relatives?.records?.map(
-        ({ data: relativeData, kids: relativeKids }) => ({
-          ...relativeData,
-          has_phone:
-            relativeKids?.has_phone?.records?.map(({ data: phoneData }) => ({
-              ...phoneData,
-            })) ?? [],
-        })
-      ) ?? [],
-  })),
+const initialState: State = {
+  data: [],
+  status: "idle",
+  error: null,
 };
+
+export const fetchData = createAsyncThunk("data/fetchData", async () => {
+  const response = await axios.get("/src/data/example-data.json");
+  return response.data;
+});
 
 export const dataSlice = createSlice({
   name: "data",
   initialState: initialState,
   reducers: {
-    deleteRow: (state, action) => {
-      const parentId = action.payload["Identification number"];
-      const relativeId = action.payload["Relative ID"];
-      const phoneId = action.payload["Phone ID"];
+    deleteItem(state, action) {
+      const itemId = action.payload;
 
-      if (parentId) {
-        state.value = state.value.filter(
-          (item) => item["Identification number"] !== parentId
-        );
-      }
+      const deleteRecursive = (items: (PersonRecord | NemesisRecord | SecreteRecord)[]) => {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
 
-      if (relativeId) {
-        state.value = state.value.map((item) => {
-          if (item.has_relatives) {
-            item.has_relatives = item.has_relatives.filter(
-              (relative) => relative["Relative ID"] !== relativeId
-            );
+          if (item.data.ID === itemId) {
+            items.splice(i, 1);
+            return true;
           }
-          return item;
-        });
-      }
 
-      if (phoneId) {
-        state.value = state.value.map((item) => {
-          if (item.has_relatives) {
-            item.has_relatives.map((relative) => {
-              relative.has_phone = relative.has_phone.filter(
-                (phone) => phone["Phone ID"] !== phoneId
-              );
-            });
+          for (const key in item.children) {
+            const child = item.children[key];
+            if (child.records) {
+              const childItems = child.records;
+              const deleted = deleteRecursive(childItems);
+              if (deleted && childItems.length === 0) {
+                delete item.children[key];
+              }
+            }
           }
-          return item;
-        });
-      }
+        }
+
+        return false;
+      };
+
+      deleteRecursive(state.data);
+
+      return state;
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchData.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.data = action.payload;
+      })
+      .addCase(fetchData.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message ? action.error.message : null;
+      });
   },
 });
 
-export const { deleteRow } = dataSlice.actions;
+export const { deleteItem } = dataSlice.actions;
 export default dataSlice.reducer;
