@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AppDispatch, RootState } from "../../app/store";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchData } from "../../features/dataSlice";
@@ -7,12 +7,17 @@ import CollapsibleTable from "../CollapsibleTable/CollapsibleTable";
 const ContainerTable = () => {
   const dispatch: AppDispatch = useDispatch();
   const { data, status, error } = useSelector((state: RootState) => state.data);
+  const effectRun = useRef(false);
 
   useEffect(() => {
-    if (status === "idle") {
+    if (status === "idle" && effectRun.current === false) {
       dispatch(fetchData());
+
+      return () => {
+        effectRun.current = true;
+      };
     }
-  }, [status, dispatch]);
+  }, []);
 
   if (status === "loading" || data.length === 0) {
     return <div>Loading...</div>;
